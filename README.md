@@ -4,18 +4,18 @@ Sistema moderno y personalizable de **Punto de Venta (TPV / POS)** desarrollado 
 
 ---
 
-## 🚀 Características Principales
+##  Características Principales
 
-- 🛒 **Terminal TPV Rápido:** Selección por categorías, buscador instantáneo por nombre/SKU y cuadrícula interactiva.
-- 🎨 **Ventas Personalizadas:** Modificación de precios al vuelo, especificaciones y notas personalizadas por producto.
-- 💳 **Cobro Multidivisa y Métodos:** Efectivo (con desglose y cálculo de cambio), tarjeta de crédito y Bizum/transferencia.
-- 📊 **Arqueo y Registro de Ventas:** Resumen de ingresos diarios, recuento de tickets e historial de transacciones.
-- 📦 **Control de Inventario:** Gestión de existencias, ajuste rápido de stock y alta de nuevos productos.
-- 🌓 **Soporte Multiplataforma & Modo Oscuro:** Optimizado para Android, iOS, Windows y Web con interfaz adaptable (Móvil / Tablet / Desktop).
+-  **Terminal TPV Rápido:** Selección por categorías, buscador instantáneo por nombre/SKU y cuadrícula interactiva.
+-  **Ventas Personalizadas:** Modificación de precios al vuelo, especificaciones y notas personalizadas por producto.
+-  **Cobro Multidivisa y Métodos:** Efectivo (con desglose y cálculo de cambio), tarjeta de crédito y Bizum/transferencia.
+-  **Arqueo y Registro de Ventas:** Resumen de ingresos diarios, recuento de tickets e historial de transacciones.
+-  **Control de Inventario:** Gestión de existencias, ajuste rápido de stock y alta de nuevos productos.
+-  **Soporte Multiplataforma & Modo Oscuro:** Optimizado para Android, iOS, Windows y Web con interfaz adaptable (Móvil / Tablet / Desktop).
 
 ---
 
-## 🏗️ Arquitectura del Proyecto
+##  Arquitectura del Proyecto
 
 El proyecto sigue el patrón **Feature-First + Clean Architecture**:
 
@@ -40,7 +40,7 @@ lib/
 
 ---
 
-## ⚙️ Requisitos y Ejecución
+##  Requisitos y Ejecución
 
 ### 1. Requisitos
 - **Flutter SDK** (versión `>= 3.19.0`)
