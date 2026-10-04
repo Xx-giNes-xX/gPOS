@@ -12,6 +12,7 @@ class SalesHistoryScreen extends ConsumerWidget {
     final sales = ref.watch(salesProvider);
     final todayTotal = ref.watch(todaySalesTotalProvider);
     final todayCount = ref.watch(todaySalesCountProvider);
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
       appBar: AppBar(
@@ -21,8 +22,8 @@ class SalesHistoryScreen extends ConsumerWidget {
         children: [
           // KPI Summary Header
           Container(
-            padding: const EdgeInsets.all(16),
-            margin: const EdgeInsets.all(16),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 10 : 16),
+            margin: EdgeInsets.fromLTRB(16, isLandscape ? 8 : 16, 16, isLandscape ? 8 : 16),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [AppColors.primaryDark, AppColors.primary],

@@ -11,6 +11,7 @@ class CartSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = ref.watch(cartProvider);
+    final isCompact = MediaQuery.of(context).size.height < 500;
 
     return Container(
       decoration: BoxDecoration(
@@ -29,29 +30,32 @@ class CartSheet extends ConsumerWidget {
           children: [
             // Handle bar & Header
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: isCompact ? 8 : 12),
               child: Row(
                 children: [
                   const Icon(Icons.shopping_cart_outlined, color: AppColors.primary),
                   const SizedBox(width: 8),
-                  Text(
-                    'Ticket Actual (${cart.totalItemsCount})',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Text(
+                      'Ticket Actual (${cart.totalItemsCount})',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: isCompact ? 15 : 17,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   if (cart.items.isNotEmpty)
-                    TextButton.icon(
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                      tooltip: 'Vaciar ticket',
+                      icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.error),
                       onPressed: () {
                         ref.read(cartProvider.notifier).clearCart();
                       },
-                      icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
-                      label: const Text(
-                        'Vaciar',
-                        style: TextStyle(color: AppColors.error),
-                      ),
                     ),
                 ],
               ),
@@ -209,49 +213,59 @@ class CartSheet extends ConsumerWidget {
             // Summary and checkout button
             if (cart.items.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(isCompact ? 10 : 16),
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Subtotal:'),
-                        Text(Formatters.currency(cart.subtotal)),
-                      ],
-                    ),
-                    if (cart.discountPercentage > 0) ...[
+                    if (!isCompact) ...[
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Descuento (${cart.discountPercentage.toInt()}%):'),
-                          Text(
-                            '-${Formatters.currency(cart.discountAmount)}',
-                            style: const TextStyle(color: AppColors.error),
-                          ),
+                          const Text('Subtotal:'),
+                          Text(Formatters.currency(cart.subtotal)),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      if (cart.discountPercentage > 0) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Descuento (${cart.discountPercentage.toInt()}%):'),
+                            Text(
+                              '-${Formatters.currency(cart.discountAmount)}',
+                              style: const TextStyle(color: AppColors.error),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                      ],
+                      const SizedBox(height: 6),
                     ],
-                    const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'TOTAL:',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: isCompact ? 15 : 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         Text(
                           Formatters.currency(cart.grandTotal),
-                          style: const TextStyle(
-                            fontSize: 22,
+                          style: TextStyle(
+                            fontSize: isCompact ? 18 : 22,
                             fontWeight: FontWeight.w800,
                             color: AppColors.primary,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: isCompact ? 8 : 14),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size.fromHeight(isCompact ? 40 : 48),
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                      ),
                       onPressed: () {
                         showModalBottomSheet(
                           context: context,
@@ -264,7 +278,10 @@ class CartSheet extends ConsumerWidget {
                           builder: (context) => const PaymentModal(),
                         );
                       },
-                      child: Text('COBRAR ${Formatters.currency(cart.grandTotal)}'),
+                      child: Text(
+                        'COBRAR ${Formatters.currency(cart.grandTotal)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ],
                 ),

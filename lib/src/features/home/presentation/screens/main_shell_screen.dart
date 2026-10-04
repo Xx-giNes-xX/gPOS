@@ -24,59 +24,73 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 900;
+    final mediaQuery = MediaQuery.of(context);
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+    final isDesktop = mediaQuery.size.width >= 900;
+    final useNavigationRail = isLandscape || isDesktop;
+    final isCompactHeight = mediaQuery.size.height < 480;
 
-    if (isDesktop) {
+    if (useNavigationRail) {
       return Scaffold(
-        body: Row(
-          children: [
-            NavigationRail(
-              selectedIndex: _currentIndex,
-              onDestinationSelected: (index) {
-                setState(() => _currentIndex = index);
-              },
-              labelType: NavigationRailLabelType.all,
-              leading: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(10),
+        body: SafeArea(
+          child: Row(
+            children: [
+              NavigationRail(
+                selectedIndex: _currentIndex,
+                onDestinationSelected: (index) {
+                  setState(() => _currentIndex = index);
+                },
+                labelType: isCompactHeight
+                    ? NavigationRailLabelType.selected
+                    : NavigationRailLabelType.all,
+                minWidth: isCompactHeight ? 56 : 68,
+                leading: Padding(
+                  padding: EdgeInsets.symmetric(vertical: isCompactHeight ? 6 : 12),
+                  child: Container(
+                    padding: EdgeInsets.all(isCompactHeight ? 6 : 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.point_of_sale_rounded,
+                      color: Colors.white,
+                      size: isCompactHeight ? 20 : 26,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.point_of_sale_rounded,
-                    color: Colors.white,
-                    size: 28,
+                ),
+                destinations: const [
+                  NavigationRailDestination(
+                    icon: Icon(Icons.storefront_outlined),
+                    selectedIcon: Icon(Icons.storefront_rounded),
+                    label: Text('TPV'),
                   ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.receipt_long_outlined),
+                    selectedIcon: Icon(Icons.receipt_long_rounded),
+                    label: Text('Ventas'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.inventory_2_outlined),
+                    selectedIcon: Icon(Icons.inventory_2_rounded),
+                    label: Text('Inventario'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.settings_outlined),
+                    selectedIcon: Icon(Icons.settings_rounded),
+                    label: Text('Ajustes'),
+                  ),
+                ],
+              ),
+              const VerticalDivider(thickness: 1, width: 1),
+              Expanded(
+                child: IndexedStack(
+                  index: _currentIndex,
+                  children: _screens,
                 ),
               ),
-              destinations: const [
-                NavigationRailDestination(
-                  icon: Icon(Icons.storefront_outlined),
-                  selectedIcon: Icon(Icons.storefront_rounded),
-                  label: Text('Terminal'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.receipt_long_outlined),
-                  selectedIcon: Icon(Icons.receipt_long_rounded),
-                  label: Text('Ventas'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.inventory_2_outlined),
-                  selectedIcon: Icon(Icons.inventory_2_rounded),
-                  label: Text('Inventario'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.settings_outlined),
-                  selectedIcon: Icon(Icons.settings_rounded),
-                  label: Text('Ajustes'),
-                ),
-              ],
-            ),
-            const VerticalDivider(thickness: 1, width: 1),
-            Expanded(child: _screens[_currentIndex]),
-          ],
+            ],
+          ),
         ),
       );
     }

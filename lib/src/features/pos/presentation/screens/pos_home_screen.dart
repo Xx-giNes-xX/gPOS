@@ -16,10 +16,31 @@ class PosHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final products = ref.watch(filteredProductsProvider);
     final cart = ref.watch(cartProvider);
-    final isTabletOrDesktop = MediaQuery.of(context).size.width >= 900;
+
+    final mediaQuery = MediaQuery.of(context);
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+    final isWideScreen = mediaQuery.size.width >= 650;
+    final showSplitView = isLandscape || isWideScreen;
+    final isCompactHeight = mediaQuery.size.height < 480;
+
+    int gridColumns;
+    if (showSplitView) {
+      if (mediaQuery.size.width >= 1100) {
+        gridColumns = 4;
+      } else if (mediaQuery.size.width >= 850) {
+        gridColumns = 3;
+      } else {
+        gridColumns = 2;
+      }
+    } else {
+      gridColumns = 2;
+    }
+
+    final cartSidebarWidth = mediaQuery.size.width >= 900 ? 360.0 : 290.0;
 
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 16,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -58,6 +79,11 @@ class PosHomeScreen extends ConsumerWidget {
               );
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.add_box_rounded),
+            tooltip: 'Añadir Producto',
+            onPressed: () => AddProductDialog.show(context),
+          ),
           const SizedBox(width: 8),
         ],
       ),
@@ -65,15 +91,20 @@ class PosHomeScreen extends ConsumerWidget {
         children: [
           // Left side: Catalog & Search
           Expanded(
-            flex: 3,
             child: Column(
               children: [
                 // Search bar
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    isCompactHeight ? 4 : 8,
+                    16,
+                    isCompactHeight ? 6 : 12,
+                  ),
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: 'Buscar producto...',
+                      isDense: isCompactHeight,
                       prefixIcon: const Icon(Icons.search_rounded),
                       suffixIcon: ref.watch(searchQueryProvider).isNotEmpty
                           ? IconButton(
@@ -98,20 +129,20 @@ class PosHomeScreen extends ConsumerWidget {
                             children: [
                               Icon(
                                 Icons.inventory_2_outlined,
-                                size: 56,
+                                size: isCompactHeight ? 40 : 56,
                                 color: Theme.of(context).disabledColor.withValues(alpha: 0.3),
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 8),
                               const Text(
                                 'No se encontraron productos',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 12),
                               ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primary,
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                                 ),
                                 icon: const Icon(Icons.add),
                                 label: const Text('Añadir Producto'),
@@ -123,10 +154,10 @@ class PosHomeScreen extends ConsumerWidget {
                       : GridView.builder(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: isTabletOrDesktop ? 4 : 2,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 0.9,
+                            crossAxisCount: gridColumns,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                            childAspectRatio: 0.88,
                           ),
                           itemCount: products.length,
                           itemBuilder: (context, index) {
@@ -214,16 +245,16 @@ class PosHomeScreen extends ConsumerWidget {
               ],
             ),
           ),
-          // Right side (Tablet / Desktop): Fixed Cart Sidebar
-          if (isTabletOrDesktop)
-            const SizedBox(
-              width: 380,
-              child: CartSheet(),
+          // Right side (Horizontal / Tablet / Desktop): Split Cart Sidebar
+          if (showSplitView)
+            SizedBox(
+              width: cartSidebarWidth,
+              child: const CartSheet(),
             ),
         ],
       ),
-      // Mobile Floating Bottom Cart Bar
-      bottomNavigationBar: !isTabletOrDesktop && cart.items.isNotEmpty
+      // Mobile Portrait Floating Bottom Cart Bar
+      bottomNavigationBar: !showSplitView && cart.items.isNotEmpty
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
@@ -253,7 +284,7 @@ class PosHomeScreen extends ConsumerWidget {
                               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                             ),
                             builder: (context) => const SizedBox(
-                              height: 600,
+                              height: 560,
                               child: CartSheet(),
                             ),
                           );
@@ -296,7 +327,7 @@ class PosHomeScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                           ),
                           builder: (context) => const SizedBox(
-                            height: 600,
+                            height: 560,
                             child: CartSheet(),
                           ),
                         );
