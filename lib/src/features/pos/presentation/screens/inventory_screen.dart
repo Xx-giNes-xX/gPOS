@@ -11,6 +11,48 @@ import '../widgets/product_image_widget.dart';
 class InventoryScreen extends ConsumerWidget {
   const InventoryScreen({super.key});
 
+  void _confirmDeleteProduct(BuildContext context, WidgetRef ref, Product product) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppColors.error),
+            SizedBox(width: 8),
+            Text('Eliminar Producto'),
+          ],
+        ),
+        content: Text(
+          '¿Estás seguro de que deseas eliminar "${product.name}" del inventario? Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              ref.read(productsProvider.notifier).deleteProduct(product.id);
+              Navigator.pop(dialogCtx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Producto "${product.name}" eliminado correctamente'),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            },
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final products = ref.watch(productsProvider);
@@ -67,7 +109,7 @@ class InventoryScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                     onTap: () => _showProductForm(context, ref, product: product),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       child: Row(
                         children: [
                           // Left: Product image thumbnail
@@ -90,7 +132,7 @@ class InventoryScreen extends ConsumerWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 4),
                                 Row(
                                   children: [
                                     Container(
@@ -108,7 +150,7 @@ class InventoryScreen extends ConsumerWidget {
                                             ? 'Agotado (0)'
                                             : 'Stock: ${product.stock} uds',
                                         style: TextStyle(
-                                          fontSize: 12,
+                                          fontSize: 11,
                                           fontWeight: FontWeight.w600,
                                           color: product.stock <= 0
                                               ? AppColors.error
@@ -122,7 +164,7 @@ class InventoryScreen extends ConsumerWidget {
                                       const SizedBox(width: 8),
                                       Text(
                                         'Coste: ${Formatters.currency(product.cost)}',
-                                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondaryLight),
+                                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondaryLight),
                                       ),
                                     ],
                                   ],
@@ -130,17 +172,17 @@ class InventoryScreen extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                           // Price
                           Text(
                             Formatters.currency(product.price),
                             style: const TextStyle(
-                              fontSize: 16,
+                              fontSize: 15,
                               fontWeight: FontWeight.w800,
                               color: AppColors.primary,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                           // Stock controls
                           Container(
                             decoration: BoxDecoration(
@@ -156,8 +198,8 @@ class InventoryScreen extends ConsumerWidget {
                                 IconButton(
                                   visualDensity: VisualDensity.compact,
                                   padding: const EdgeInsets.all(4),
-                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                  icon: const Icon(Icons.remove, size: 16),
+                                  constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                                  icon: const Icon(Icons.remove, size: 15),
                                   tooltip: 'Restar 1 unidad',
                                   onPressed: product.stock > 0
                                       ? () => ref.read(productsProvider.notifier).adjustStock(product.id, -1)
@@ -166,13 +208,21 @@ class InventoryScreen extends ConsumerWidget {
                                 IconButton(
                                   visualDensity: VisualDensity.compact,
                                   padding: const EdgeInsets.all(4),
-                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                  icon: const Icon(Icons.add, size: 16),
+                                  constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                                  icon: const Icon(Icons.add, size: 15),
                                   tooltip: 'Añadir 1 unidad',
                                   onPressed: () => ref.read(productsProvider.notifier).adjustStock(product.id, 1),
                                 ),
                               ],
                             ),
+                          ),
+                          const SizedBox(width: 4),
+                          // Delete button
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.error),
+                            tooltip: 'Eliminar producto',
+                            onPressed: () => _confirmDeleteProduct(context, ref, product),
                           ),
                         ],
                       ),
@@ -207,7 +257,7 @@ class InventoryScreen extends ConsumerWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => StatefulBuilder(
+      builder: (modalContext) => StatefulBuilder(
         builder: (context, setModalState) => Padding(
           padding: EdgeInsets.only(
             left: 20,
@@ -220,9 +270,23 @@ class InventoryScreen extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  product == null ? 'Añadir Nuevo Producto' : 'Editar Producto',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      product == null ? 'Añadir Nuevo Producto' : 'Editar Producto',
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    if (product != null)
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                        tooltip: 'Eliminar producto',
+                        onPressed: () {
+                          Navigator.pop(modalContext);
+                          _confirmDeleteProduct(context, ref, product);
+                        },
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 ProductImagePicker(
@@ -271,6 +335,11 @@ class InventoryScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(46),
+                  ),
                   onPressed: () {
                     final price = double.tryParse(priceController.text.replaceAll(',', '.')) ?? 0.0;
                     final cost = double.tryParse(costController.text.replaceAll(',', '.')) ?? 0.0;
@@ -298,7 +367,7 @@ class InventoryScreen extends ConsumerWidget {
                       );
                       ref.read(productsProvider.notifier).updateProduct(updated);
                     }
-                    Navigator.pop(context);
+                    Navigator.pop(modalContext);
                   },
                   child: Text(product == null ? 'Crear Producto' : 'Guardar Cambios'),
                 ),

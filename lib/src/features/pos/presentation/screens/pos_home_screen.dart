@@ -99,7 +99,7 @@ class PosHomeScreen extends ConsumerWidget {
                     16,
                     isCompactHeight ? 4 : 8,
                     16,
-                    isCompactHeight ? 6 : 12,
+                    isCompactHeight ? 4 : 8,
                   ),
                   child: TextField(
                     decoration: InputDecoration(
@@ -120,6 +120,56 @@ class PosHomeScreen extends ConsumerWidget {
                     },
                   ),
                 ),
+                // Stock Category Filter Chips
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        FilterChip(
+                          selected: ref.watch(productStockFilterProvider) == ProductStockFilter.inStock,
+                          label: Text('Con Stock (${ref.watch(inStockProductsCountProvider)})'),
+                          avatar: Icon(
+                            Icons.check_circle_outline_rounded,
+                            size: 16,
+                            color: ref.watch(productStockFilterProvider) == ProductStockFilter.inStock
+                                ? AppColors.primary
+                                : null,
+                          ),
+                          onSelected: (_) {
+                            ref.read(productStockFilterProvider.notifier).state = ProductStockFilter.inStock;
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        FilterChip(
+                          selected: ref.watch(productStockFilterProvider) == ProductStockFilter.outOfStock,
+                          label: Text('Agotados (${ref.watch(outOfStockProductsCountProvider)})'),
+                          avatar: Icon(
+                            Icons.remove_circle_outline_rounded,
+                            size: 16,
+                            color: ref.watch(productStockFilterProvider) == ProductStockFilter.outOfStock
+                                ? AppColors.error
+                                : null,
+                          ),
+                          onSelected: (_) {
+                            ref.read(productStockFilterProvider.notifier).state = ProductStockFilter.outOfStock;
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        FilterChip(
+                          selected: ref.watch(productStockFilterProvider) == ProductStockFilter.all,
+                          label: Text('Todos (${ref.watch(productsProvider).length})'),
+                          avatar: const Icon(Icons.grid_view_rounded, size: 16),
+                          onSelected: (_) {
+                            ref.read(productStockFilterProvider.notifier).state = ProductStockFilter.all;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
                 // Product Grid
                 Expanded(
                   child: products.isEmpty

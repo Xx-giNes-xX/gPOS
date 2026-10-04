@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -39,26 +41,43 @@ class ProductImageWidget extends StatelessWidget {
     }
 
     final path = imageUrl!.trim();
-    final isNetwork = path.startsWith('http://') || path.startsWith('https://');
-
     Widget imageWidget;
-    if (isNetwork) {
-      imageWidget = Image.network(
-        path,
-        width: width,
-        height: height,
-        fit: fit,
-        errorBuilder: (_, __, ___) => _fallback(),
-      );
-    } else {
-      final file = File(path);
-      imageWidget = Image.file(
-        file,
-        width: width,
-        height: height,
-        fit: fit,
-        errorBuilder: (_, __, ___) => _fallback(),
-      );
+
+    try {
+      if (path.startsWith('data:image')) {
+        // Base64 Data URI (Universal for Web, iOS, Android, Desktop)
+        final commaIndex = path.indexOf(',');
+        final base64Str = commaIndex != -1 ? path.substring(commaIndex + 1) : path;
+        final bytes = base64Decode(base64Str);
+        imageWidget = Image.memory(
+          bytes,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (_, __, ___) => _fallback(),
+        );
+      } else if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:')) {
+        imageWidget = Image.network(
+          path,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (_, __, ___) => _fallback(),
+        );
+      } else if (!kIsWeb) {
+        final file = File(path);
+        imageWidget = Image.file(
+          file,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (_, __, ___) => _fallback(),
+        );
+      } else {
+        imageWidget = _fallback();
+      }
+    } catch (_) {
+      imageWidget = _fallback();
     }
 
     return ClipRRect(
