@@ -83,8 +83,14 @@ class InventoryScreen extends ConsumerWidget {
                     'No hay productos en el inventario',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size.zero,
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
                     onPressed: () => _showProductForm(context, ref),
                     icon: const Icon(Icons.add),
                     label: const Text('Añadir Producto'),

@@ -190,9 +190,10 @@ class PosHomeScreen extends ConsumerWidget {
                               const SizedBox(height: 12),
                               ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
+                                  minimumSize: Size.zero,
                                   backgroundColor: AppColors.primary,
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                                 ),
                                 icon: const Icon(Icons.add),
                                 label: const Text('Añadir Producto'),
