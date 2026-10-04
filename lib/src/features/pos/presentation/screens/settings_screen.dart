@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/theme/app_colors.dart';
 
-final isDarkModeProvider = StateProvider<bool>((ref) => false);
+class DarkModeNotifier extends StateNotifier<bool> {
+  DarkModeNotifier() : super(LocalStorageService.loadDarkMode());
+
+  void toggle(bool value) {
+    state = value;
+    LocalStorageService.saveDarkMode(value);
+  }
+}
+
+final isDarkModeProvider = StateNotifierProvider<DarkModeNotifier, bool>((ref) {
+  return DarkModeNotifier();
+});
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -31,7 +43,7 @@ class SettingsScreen extends ConsumerWidget {
                   subtitle: const Text('Tema visual oscuro para el punto de venta'),
                   value: isDark,
                   onChanged: (val) {
-                    ref.read(isDarkModeProvider.notifier).state = val;
+                    ref.read(isDarkModeProvider.notifier).toggle(val);
                   },
                 ),
               ],
