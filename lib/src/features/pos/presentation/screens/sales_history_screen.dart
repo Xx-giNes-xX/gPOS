@@ -16,7 +16,7 @@ class SalesHistoryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Historial y Arqueo de Ventas'),
+        title: const Text('Historial de Ventas'),
       ),
       body: Column(
         children: [
