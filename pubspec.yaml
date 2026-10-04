@@ -1,0 +1,53 @@
+name: gpos
+description: "gPOS - Sistema de Punto de Venta y Gestión de Ventas Personalizadas"
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_launcher_icons: ^0.13.1
+
+  # UI & Styling
+  google_fonts: ^6.2.1
+
+  # State Management
+  flutter_riverpod: ^2.5.1
+
+  # Routing
+  go_router: ^14.2.0
+
+  # Utilities & Helpers
+  intl: ^0.19.0
+  uuid: ^4.4.0
+
+  # Storage (Local Persistence)
+  shared_preferences: ^2.2.3
+
+  # Media & Image Picker
+  image_picker: ^1.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#FFFFFF" # Color o imagen de fondo (opcional)
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
