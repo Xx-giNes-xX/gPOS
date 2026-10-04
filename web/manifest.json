@@ -1,12 +1,12 @@
 {
-    "name": "gpos",
-    "short_name": "gpos",
+    "name": "gPOS - Terminal de Ventas",
+    "short_name": "gPOS",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#2563EB",
+    "theme_color": "#2563EB",
+    "description": "gPOS - Terminal de Punto de Venta y Gestión de Inventario",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {
