@@ -7,6 +7,7 @@ import '../controllers/catalog_controller.dart';
 import '../widgets/add_product_dialog.dart';
 import '../widgets/cart_sheet.dart';
 import '../widgets/custom_product_dialog.dart';
+import '../widgets/manage_categories_dialog.dart';
 import '../widgets/product_card.dart';
 
 class PosHomeScreen extends ConsumerWidget {
@@ -93,7 +94,7 @@ class PosHomeScreen extends ConsumerWidget {
           Expanded(
             child: Column(
               children: [
-                // Search bar
+                // Search bar & Stock filter dropdown
                 Padding(
                   padding: EdgeInsets.fromLTRB(
                     16,
@@ -101,26 +102,94 @@ class PosHomeScreen extends ConsumerWidget {
                     16,
                     isCompactHeight ? 4 : 8,
                   ),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Buscar producto...',
-                      isDense: isCompactHeight,
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      suffixIcon: ref.watch(searchQueryProvider).isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                ref.read(searchQueryProvider.notifier).state = '';
-                              },
-                            )
-                          : null,
-                    ),
-                    onChanged: (val) {
-                      ref.read(searchQueryProvider.notifier).state = val;
-                    },
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          decoration: InputDecoration(
+                            hintText: 'Buscar producto...',
+                            isDense: isCompactHeight,
+                            prefixIcon: const Icon(Icons.search_rounded),
+                            suffixIcon: ref.watch(searchQueryProvider).isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: () {
+                                      ref.read(searchQueryProvider.notifier).state = '';
+                                    },
+                                  )
+                                : null,
+                          ),
+                          onChanged: (val) {
+                            ref.read(searchQueryProvider.notifier).state = val;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Dropdown filtro de stock
+                      Container(
+                        height: isCompactHeight ? 40 : 48,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<ProductStockFilter>(
+                            value: ref.watch(productStockFilterProvider),
+                            icon: const Icon(Icons.arrow_drop_down_rounded),
+                            borderRadius: BorderRadius.circular(12),
+                            items: [
+                              DropdownMenuItem(
+                                value: ProductStockFilter.inStock,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.check_circle_outline_rounded,
+                                        size: 16, color: AppColors.primary),
+                                    const SizedBox(width: 6),
+                                    Text('Con stock (${ref.watch(inStockProductsCountProvider)})'),
+                                  ],
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: ProductStockFilter.outOfStock,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.remove_circle_outline_rounded,
+                                        size: 16, color: AppColors.error),
+                                    const SizedBox(width: 6),
+                                    Text('Sin stock (${ref.watch(outOfStockProductsCountProvider)})'),
+                                  ],
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: ProductStockFilter.all,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.inventory_2_outlined, size: 16),
+                                    const SizedBox(width: 6),
+                                    Text('Todo (${ref.watch(productsProvider).length})'),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) {
+                                ref.read(productStockFilterProvider.notifier).state = val;
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                // Stock Category Filter Chips
+                // Categories Filter Chips
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: SingleChildScrollView(
@@ -128,43 +197,48 @@ class PosHomeScreen extends ConsumerWidget {
                     child: Row(
                       children: [
                         FilterChip(
-                          selected: ref.watch(productStockFilterProvider) == ProductStockFilter.inStock,
-                          label: Text('Con Stock (${ref.watch(inStockProductsCountProvider)})'),
-                          avatar: Icon(
-                            Icons.check_circle_outline_rounded,
-                            size: 16,
-                            color: ref.watch(productStockFilterProvider) == ProductStockFilter.inStock
-                                ? AppColors.primary
-                                : null,
-                          ),
-                          onSelected: (_) {
-                            ref.read(productStockFilterProvider.notifier).state = ProductStockFilter.inStock;
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        FilterChip(
-                          selected: ref.watch(productStockFilterProvider) == ProductStockFilter.outOfStock,
-                          label: Text('Agotados (${ref.watch(outOfStockProductsCountProvider)})'),
-                          avatar: Icon(
-                            Icons.remove_circle_outline_rounded,
-                            size: 16,
-                            color: ref.watch(productStockFilterProvider) == ProductStockFilter.outOfStock
-                                ? AppColors.error
-                                : null,
-                          ),
-                          onSelected: (_) {
-                            ref.read(productStockFilterProvider.notifier).state = ProductStockFilter.outOfStock;
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        FilterChip(
-                          selected: ref.watch(productStockFilterProvider) == ProductStockFilter.all,
+                          selected: ref.watch(selectedCategoryProvider) == 'Todos',
                           label: Text('Todos (${ref.watch(productsProvider).length})'),
                           avatar: const Icon(Icons.grid_view_rounded, size: 16),
                           onSelected: (_) {
-                            ref.read(productStockFilterProvider.notifier).state = ProductStockFilter.all;
+                            ref.read(selectedCategoryProvider.notifier).state = 'Todos';
                           },
                         ),
+                        const SizedBox(width: 8),
+                        ...ref.watch(allCategoriesProvider).map((category) {
+                          final isSelected = ref.watch(selectedCategoryProvider).toLowerCase() ==
+                              category.toLowerCase();
+                          final count = ref.watch(categoryCountProvider(category));
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: GestureDetector(
+                              onLongPress: () => _confirmDeleteCategory(context, ref, category, count),
+                              child: FilterChip(
+                                selected: isSelected,
+                                label: Text('$category ($count)'),
+                                tooltip: 'Toca para filtrar • Mantén pulsado para eliminar',
+                                onSelected: (_) {
+                                  ref.read(selectedCategoryProvider.notifier).state = category;
+                                },
+                              ),
+                            ),
+                          );
+                        }),
+                        ActionChip(
+                          avatar: const Icon(Icons.add_rounded, size: 16),
+                          label: const Text('Nueva'),
+                          tooltip: 'Crear nueva categoría',
+                          onPressed: () => _showAddCategoryDialog(context, ref),
+                        ),
+                        if (ref.watch(allCategoriesProvider).isNotEmpty) ...[
+                          const SizedBox(width: 8),
+                          ActionChip(
+                            avatar: const Icon(Icons.tune_rounded, size: 16),
+                            label: const Text('Gestionar'),
+                            tooltip: 'Gestionar y eliminar categorías',
+                            onPressed: () => ManageCategoriesDialog.show(context),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -390,6 +464,118 @@ class PosHomeScreen extends ConsumerWidget {
               ),
             )
           : null,
+    );
+  }
+
+  void _showAddCategoryDialog(BuildContext context, WidgetRef ref) {
+    final textController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.category_rounded, color: AppColors.primary),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Nueva Categoría',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: TextField(
+          controller: textController,
+          autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(
+            labelText: 'Nombre de la categoría',
+            hintText: 'Ej. Pegatinas, Chapas...',
+          ),
+          onSubmitted: (val) {
+            final trimmed = val.trim();
+            if (trimmed.isNotEmpty) {
+              ref.read(categoriesProvider.notifier).addCategory(trimmed);
+              ref.read(selectedCategoryProvider.notifier).state = trimmed;
+              Navigator.pop(dialogCtx);
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              final trimmed = textController.text.trim();
+              if (trimmed.isNotEmpty) {
+                ref.read(categoriesProvider.notifier).addCategory(trimmed);
+                ref.read(selectedCategoryProvider.notifier).state = trimmed;
+                Navigator.pop(dialogCtx);
+              }
+            },
+            child: const Text('Crear Categoría'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteCategory(BuildContext context, WidgetRef ref, String category, int count) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppColors.error),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '¿Eliminar categoría?',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 380,
+          child: Text(
+            '¿Estás seguro de que deseas eliminar la categoría "$category"?\n\n'
+            '${count > 0 ? "Los $count productos asignados a esta categoría pasarán a estar 'Sin categoría'." : "No hay productos asignados a esta categoría."}',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              ref.read(categoriesProvider.notifier).deleteCategory(category);
+              Navigator.pop(dialogCtx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Categoría "$category" eliminada'),
+                  backgroundColor: AppColors.error,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
     );
   }
 }

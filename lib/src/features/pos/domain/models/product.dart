@@ -7,6 +7,7 @@ class Product {
   final String? imageUrl;
   final String? description;
   final bool isCustomizable;
+  final String category;
 
   const Product({
     required this.id,
@@ -17,6 +18,7 @@ class Product {
     this.imageUrl,
     this.description,
     this.isCustomizable = false,
+    this.category = '',
   });
 
   Product copyWith({
@@ -28,6 +30,7 @@ class Product {
     String? imageUrl,
     String? description,
     bool? isCustomizable,
+    String? category,
   }) {
     return Product(
       id: id ?? this.id,
@@ -38,6 +41,7 @@ class Product {
       imageUrl: imageUrl ?? this.imageUrl,
       description: description ?? this.description,
       isCustomizable: isCustomizable ?? this.isCustomizable,
+      category: category ?? this.category,
     );
   }
 
@@ -50,16 +54,22 @@ class Product {
         'imageUrl': imageUrl,
         'description': description,
         'isCustomizable': isCustomizable,
+        'category': category,
       };
 
-  factory Product.fromJson(Map<String, dynamic> json) => Product(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        price: (json['price'] as num).toDouble(),
-        cost: (json['cost'] as num?)?.toDouble() ?? 0.0,
-        stock: json['stock'] as int? ?? 0,
-        imageUrl: json['imageUrl'] as String?,
-        description: json['description'] as String?,
-        isCustomizable: json['isCustomizable'] as bool? ?? false,
-      );
+  factory Product.fromJson(Map<String, dynamic> json) {
+    final catRaw = (json['category'] as String?)?.trim() ?? '';
+    final category = catRaw.toLowerCase() == 'general' ? '' : catRaw;
+    return Product(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      price: (json['price'] as num).toDouble(),
+      cost: (json['cost'] as num?)?.toDouble() ?? 0.0,
+      stock: json['stock'] as int? ?? 0,
+      imageUrl: json['imageUrl'] as String?,
+      description: json['description'] as String?,
+      isCustomizable: json['isCustomizable'] as bool? ?? false,
+      category: category,
+    );
+  }
 }

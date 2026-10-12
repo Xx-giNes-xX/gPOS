@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/models/product.dart';
 import '../controllers/catalog_controller.dart';
+import 'manage_categories_dialog.dart';
 import 'product_image_picker.dart';
 
 class AddProductDialog extends ConsumerStatefulWidget {
@@ -28,6 +29,7 @@ class _AddProductDialogState extends ConsumerState<AddProductDialog> {
 
   String? _imageUrl;
   bool _isCustomizable = false;
+  String _selectedCategory = '';
 
   @override
   void dispose() {
@@ -35,6 +37,69 @@ class _AddProductDialogState extends ConsumerState<AddProductDialog> {
     _priceController.dispose();
     _stockController.dispose();
     super.dispose();
+  }
+
+  Future<void> _promptCreateCategory(BuildContext context) async {
+    final textController = TextEditingController();
+    final created = await showDialog<String>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.category_rounded, color: AppColors.primary),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Nueva Categoría',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: TextField(
+          controller: textController,
+          autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(
+            labelText: 'Nombre de la categoría',
+            hintText: 'Ej. Pegatinas, Chapas...',
+          ),
+          onSubmitted: (val) {
+            final trimmed = val.trim();
+            if (trimmed.isNotEmpty) {
+              Navigator.pop(dialogCtx, trimmed);
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              final trimmed = textController.text.trim();
+              if (trimmed.isNotEmpty) {
+                Navigator.pop(dialogCtx, trimmed);
+              }
+            },
+            child: const Text('Crear Categoría'),
+          ),
+        ],
+      ),
+    );
+
+    if (created != null && created.isNotEmpty) {
+      ref.read(categoriesProvider.notifier).addCategory(created);
+      setState(() {
+        _selectedCategory = created;
+      });
+    }
   }
 
   void _saveProduct() {
@@ -52,8 +117,10 @@ class _AddProductDialogState extends ConsumerState<AddProductDialog> {
       stock: stock,
       imageUrl: _imageUrl,
       isCustomizable: _isCustomizable,
+      category: _selectedCategory,
     );
 
+    ref.read(categoriesProvider.notifier).addCategory(_selectedCategory);
     ref.read(productsProvider.notifier).addProduct(newProduct);
 
     Navigator.of(context).pop();
@@ -75,15 +142,23 @@ class _AddProductDialogState extends ConsumerState<AddProductDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final availableCategories = ref.watch(allCategoriesProvider);
+    final currentCat = availableCategories.contains(_selectedCategory)
+        ? _selectedCategory
+        : '';
+
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: const Row(
         children: [
           Icon(Icons.add_box_rounded, color: AppColors.primary),
           SizedBox(width: 8),
-          Text(
-            'Añadir Producto',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          Expanded(
+            child: Text(
+              'Añadir Producto',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
@@ -119,6 +194,62 @@ class _AddProductDialogState extends ConsumerState<AddProductDialog> {
                     }
                     return null;
                   },
+                ),
+                const SizedBox(height: 16),
+
+                // Category selector with on-the-fly creation
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        key: ValueKey(currentCat),
+                        initialValue: currentCat,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Categoría',
+                          prefixIcon: Icon(Icons.category_outlined),
+                        ),
+                        items: [
+                          const DropdownMenuItem<String>(
+                            value: '',
+                            child: Text(
+                              'Sin categoría',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          ...availableCategories.map((cat) {
+                            return DropdownMenuItem<String>(
+                              value: cat,
+                              child: Text(
+                                cat,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _selectedCategory = val);
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton.filledTonal(
+                      tooltip: 'Crear nueva categoría',
+                      icon: const Icon(Icons.add_rounded),
+                      onPressed: () => _promptCreateCategory(context),
+                    ),
+                    if (availableCategories.isNotEmpty) ...[
+                      const SizedBox(width: 4),
+                      IconButton.filledTonal(
+                        tooltip: 'Gestionar categorías',
+                        icon: const Icon(Icons.tune_rounded),
+                        onPressed: () => ManageCategoriesDialog.show(context),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 16),
 

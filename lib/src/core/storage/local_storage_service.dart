@@ -56,6 +56,36 @@ class LocalStorageService {
     } catch (_) {}
   }
 
+  // --- CATEGORIES ---
+  static const String _categoriesKey = 'gpos_saved_categories_v2';
+  static const List<String> defaultCategories = [];
+
+  static List<String> loadCategories() {
+    try {
+      final list = _prefs?.getStringList(_categoriesKey);
+      if (list == null) {
+        return [];
+      }
+      return list.where((c) {
+        final lower = c.trim().toLowerCase();
+        return lower.isNotEmpty &&
+            lower != 'general' &&
+            lower != 'todos' &&
+            lower != 'bebidas' &&
+            lower != 'comida' &&
+            lower != 'postres';
+      }).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<void> saveCategories(List<String> categories) async {
+    try {
+      await _prefs?.setStringList(_categoriesKey, categories);
+    } catch (_) {}
+  }
+
   // --- SETTINGS ---
   static bool loadDarkMode() {
     return _prefs?.getBool(_darkModeKey) ?? false;

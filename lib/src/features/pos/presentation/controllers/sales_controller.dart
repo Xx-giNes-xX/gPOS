@@ -50,6 +50,42 @@ class SalesNotifier extends StateNotifier<List<Sale>> {
 
     return newSale;
   }
+
+  /// Elimina una venta/ticket por su ID.
+  /// Si [restoreStock] es true (por defecto), reincorpora el stock de los productos vendidos al inventario.
+  bool deleteSale(String saleId, {bool restoreStock = true}) {
+    final saleIndex = state.indexWhere((s) => s.id == saleId);
+    if (saleIndex == -1) return false;
+
+    final sale = state[saleIndex];
+
+    if (restoreStock) {
+      final productsNotifier = ref.read(productsProvider.notifier);
+      for (final item in sale.items) {
+        productsNotifier.adjustStock(item.product.id, item.quantity);
+      }
+    }
+
+    state = state.where((s) => s.id != saleId).toList();
+    LocalStorageService.saveSales(state);
+    return true;
+  }
+
+  /// Elimina todas las ventas/tickets del historial.
+  /// Si [restoreStock] es true, reincorpora el stock de todos los productos de las ventas eliminadas.
+  void clearAllSales({bool restoreStock = false}) {
+    if (restoreStock) {
+      final productsNotifier = ref.read(productsProvider.notifier);
+      for (final sale in state) {
+        for (final item in sale.items) {
+          productsNotifier.adjustStock(item.product.id, item.quantity);
+        }
+      }
+    }
+
+    state = [];
+    LocalStorageService.saveSales(state);
+  }
 }
 
 final salesProvider = StateNotifierProvider<SalesNotifier, List<Sale>>((ref) {
